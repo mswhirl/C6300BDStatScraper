@@ -26,7 +26,7 @@ json = urlopen(request).read().decode()
 #no cookie etc is used - it seems to be IP based?
 
 #at this point we can query away - make sure html2text is installed 'pip install html2text'
-conn = http.client.HTTPConnection(modem)
+output = ""
 conn.request("GET", "/HngConnectionSettings.asp")
 r1 = conn.getresponse()
 print(r1.status, r1.reason)
@@ -36,10 +36,35 @@ h.body_width = 999
 body = h.handle(data1.decode())
 body = body[body.find('Connection Settings'):body.find('# MENU')]
 print(body)
+output += body
 
+# get system information
+conn.request("GET", "/HngIndex.asp")
+r1 = conn.getresponse()
+print(r1.status, r1.reason)
+data1 = r1.read()
+h = html2text.HTML2Text()
+h.body_width = 999
+body = h.handle(data1.decode())
+body = body[body.find('Information'):body.find('# MENU')]
+print(body)
+output += body
+
+# get system log
+conn.request("GET", "/HngEventLog.asp")
+r1 = conn.getresponse()
+print(r1.status, r1.reason)
+data1 = r1.read()
+h = html2text.HTML2Text()
+h.body_width = 999
+body = h.handle(data1.decode())
+body = body[body.find('System Event Log'):body.find('# MENU')]
+print(body)
+output += body
+
+# save and open in default text editor 
 outfile = os.path.join(os.environ['TEMP'], 'cablestats.txt')
 out = open(outfile, 'w+')
-out.write(body)
+out.write(output)
 out.close()
-
 os.startfile(outfile)
